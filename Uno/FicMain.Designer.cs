@@ -40,6 +40,8 @@
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSauver = new System.Windows.Forms.Button();
             this.btnMusic = new System.Windows.Forms.Button();
+            this.bUno = new System.Windows.Forms.Button();
+            this.lblUno = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pbJeu)).BeginInit();
             this.SuspendLayout();
             // 
@@ -157,6 +159,27 @@
             this.btnMusic.UseVisualStyleBackColor = true;
             this.btnMusic.Click += new System.EventHandler(this.btnMusic_Click);
             // 
+            // bUno
+            // 
+            this.bUno.Font = new System.Drawing.Font("Arial Narrow", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.bUno.Location = new System.Drawing.Point(343, 476);
+            this.bUno.Name = "bUno";
+            this.bUno.Size = new System.Drawing.Size(130, 60);
+            this.bUno.TabIndex = 13;
+            this.bUno.Text = "Uno";
+            this.bUno.UseVisualStyleBackColor = true;
+            this.bUno.Click += new System.EventHandler(this.bUno_Click);
+            // 
+            // lblUno
+            // 
+            this.lblUno.AutoSize = true;
+            this.lblUno.Font = new System.Drawing.Font("Arial Narrow", 12F);
+            this.lblUno.Location = new System.Drawing.Point(250, 539);
+            this.lblUno.Name = "lblUno";
+            this.lblUno.Size = new System.Drawing.Size(350, 29);
+            this.lblUno.TabIndex = 14;
+            this.lblUno.Text = "Cliquer avant d\'avoir une carte en main";
+            // 
             // FicUno
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -164,6 +187,8 @@
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.SteelBlue;
             this.ClientSize = new System.Drawing.Size(1509, 764);
+            this.Controls.Add(this.lblUno);
+            this.Controls.Add(this.bUno);
             this.Controls.Add(this.btnMusic);
             this.Controls.Add(this.btnSauver);
             this.Controls.Add(this.btnLoad);
@@ -202,6 +227,8 @@
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSauver;
         private System.Windows.Forms.Button btnMusic;
+        private System.Windows.Forms.Button bUno;
+        private System.Windows.Forms.Label lblUno;
     }
 }
 

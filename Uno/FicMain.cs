@@ -14,6 +14,7 @@ using System.Media;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using WMPLib;
+using System.Diagnostics;
 
 namespace Uno
 {
@@ -24,6 +25,9 @@ namespace Uno
         private Carte Pile = new Carte(590, 270);
         private Carte[] J1 = new Carte[10];
         private Carte[] J2 = new Carte[10];
+        private List<Carte> ExcesJ1 = new List<Carte>();
+        private List<Carte> ExcesJ2 = new List<Carte>();
+        //Liste des cartes en trop à garder en mémoire
         private int[] x = new int[10];
         //Position des cartes en x des deux joueurs
         private int y1 = 500;
@@ -40,6 +44,8 @@ namespace Uno
         private Partie PartieSave; //classe gardant en memoire toutes les variables de la partie 
         private WindowsMediaPlayer player = new WindowsMediaPlayer(); //lecteur de musique 
         private bool son; //boleen contrôlant si la musique est jouer ou non
+        private bool verifuno = false; //Vérifie si le joueur a dit Uno lorsqu'il a sa dernière carte en main
+        private Carte Jouee;
         #endregion
 
         #region Accesseur
@@ -154,7 +160,20 @@ namespace Uno
                     {
                         if (J1[i] != null)
                         {
+                            
                             J1[i] = J1[i].Compare(Pile);
+
+                            if (J1[i] == null) //Si la carte a été jouée
+                            {
+
+                                for (int j = 0; j < start; j++) //On compare toutes les cartes a celles jouée pour trouver les même et les joué aussi
+                                {
+                                    if(J1[j] != null)
+
+                                    J1[j] = J1[j].HardCompare(Pile);
+                                }
+                            }
+
                             pbJeu.Invalidate();
 
                             //Compare la carte jouer et update l'ecran de jeu
@@ -169,6 +188,8 @@ namespace Uno
 
                             if (J1[i] == null)
                             {// Si la carte a été jouée on passe au tour suivant et on prend en compte son effet
+
+                                Uno(tourJ1);
 
                                 tourJ1 = ChangementTour(tourJ1);
 
@@ -189,6 +210,18 @@ namespace Uno
                         if (J2[i] != null)
                         {
                             J2[i] = J2[i].Compare(Pile);
+
+                            if (J2[i] == null) //Si la carte a été jouée
+                            {
+
+                                for (int j = 0; j < start; j++) //On compare toutes les cartes a celles jouée pour trouver les même et les joué aussi
+                                {
+                                    if (J2[j] != null)
+
+                                        J2[j] = J2[j].HardCompare(Pile);
+                                }
+                            }
+
                             pbJeu.Invalidate();
 
                             if (Pile.Gagner(J2) == true)
@@ -201,6 +234,8 @@ namespace Uno
 
                             if (J2[i] == null)
                             {
+                                Uno(tourJ1);
+
                                 tourJ1 = ChangementTour(tourJ1);
 
                                 Effet(Pile.ValeurEffet(Pile));
@@ -275,15 +310,46 @@ namespace Uno
 
         }
 
+        private void bUno_Click(object sender, EventArgs e)
+        {
+            verifuno = true;
+        }
+
         #endregion
 
         #region Methodes console
 
         public bool ChangementTour(bool tourJoueur)
         {
+
             tourJoueur = !tourJoueur;
 
             return tourJoueur;
+        }
+
+        private void Uno(bool tourJoueur)
+        {
+            if (tourJoueur && nbCarte1 == 2) //Condition pour le uno J1
+            {
+
+                if (!verifuno)
+                {
+                    Pioche(4);
+                }
+
+                verifuno = false;
+            }
+
+            if (!tourJoueur && nbCarte2 == 2) //Condition pour le uno J2
+            {
+
+                if (!verifuno)
+                {
+                    Pioche(4);
+                }
+
+                verifuno = false;
+            }
         }
 
         private void btnPiocher_Click(object sender, EventArgs e)
@@ -308,14 +374,25 @@ namespace Uno
                         if (J1[i] == null)
                         { // Si une place vide a été trouvé, on y ajoute une carte et on rafraichi l'écran
                             J1[i] = new Carte(x[i], y1);
+
+                            if(ExcesJ1.Count != 0)
+                            { //Remplacer par la carte de la liste
+
+                                var tmpCarte = ExcesJ1.First(); //Placer l'exces dans un tmp
+
+                                tmpCarte.Remplacer(J1[i]); //Remplacer la carte piocher
+
+                                ExcesJ1.RemoveAt(0); //Supprime 1er element
+
+                            }
+
                             pbJeu.Invalidate();
                             flag = false;
                         }
-
                         i++;
                     }
 
-                    if (flag)
+                    if (flag) //Emplacement vide non trouver
                     {//Si la carte est obtenue via une pioche normal on afficher un changement de carte dans le cas où on a 10 cartes en main
                         if (a == 1)
                         {
@@ -323,6 +400,13 @@ namespace Uno
                             J1[i-1] = J1[i-1].Compare(J1[i-1]);
                             J1[i-1] = new Carte(x[i-1], y1);
                             pbJeu.Invalidate();
+                        }
+
+                        else //Si la carte est obtenue via un effet +2 ou +4
+                        {
+                            var CarteExces = new Carte(0, 0);
+                            ExcesJ1.Add(CarteExces);
+                          
                         }
                     }
                 }
@@ -334,6 +418,18 @@ namespace Uno
                         if (J2[i] == null)
                         {
                             J2[i] = new Carte(x[i], y2);
+
+                            if (ExcesJ2.Count != 0)
+                            { //Remplacer par la carte de la liste
+
+                                var tmpCarte = ExcesJ2.First(); //Placer l'exces dans un tmp
+
+                                tmpCarte.Remplacer(J2[i]); //Remplacer la carte piocher
+
+                                ExcesJ2.RemoveAt(0); //Supprime 1er element
+
+                            }
+
                             pbJeu.Invalidate();
                             flag = false;
                         }
@@ -349,6 +445,13 @@ namespace Uno
                             J2[i - 1] = J2[i - 1].Compare(J2[i - 1]);
                             J2[i - 1] = new Carte(x[i - 1], y2);
                             pbJeu.Invalidate();
+                        }
+
+                        else //Si la carte est obtenue via un effet +2 ou +4
+                        {
+                            var CarteExces = new Carte(0, 0);
+                            ExcesJ2.Add(CarteExces);
+
                         }
                     }
                 }
@@ -374,5 +477,6 @@ namespace Uno
 
         #endregion
 
+       
     }
 }

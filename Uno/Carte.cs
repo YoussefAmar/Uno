@@ -170,6 +170,32 @@ namespace Uno
             //Renvoie null pour supprimer la carte jouée si elle est correct ou renvoie la carte si elle n'est pas correct
         }
 
+        public void Remplacer(Carte Aremplacer)
+        {
+            Aremplacer.Valeur = this.Valeur;
+            Aremplacer.Couleur = this.Couleur;
+            Aremplacer.choixCouleur = this.choixCouleur;
+            Aremplacer.bCouleur = this.bCouleur;
+            Aremplacer.NomValeur = this.NomValeur;
+            Aremplacer.rngCouleur = this.rngCouleur;
+            Aremplacer.rngValeur = this.rngValeur;
+        }
+
+        public Carte HardCompare(Carte Pile)
+        {
+            if (this.Valeur == Pile.Valeur && Pile.Couleur == this.Couleur && this.Valeur <= 9)
+            {
+                Pile.Couleur = this.Couleur;
+                Pile.bCouleur = new SolidBrush(this.Couleur);
+
+                return null;
+            }
+
+            else
+                return this;
+
+        }
+
         public bool Gagner(Carte[] Joueur)
         {
             bool flag = true;
