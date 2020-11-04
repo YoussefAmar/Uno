@@ -7,7 +7,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.IO;
 using System.Threading;
 
 

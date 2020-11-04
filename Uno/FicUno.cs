@@ -45,7 +45,8 @@ namespace Uno
         private WindowsMediaPlayer player = new WindowsMediaPlayer(); //lecteur de musique 
         private bool son; //boleen contrôlant si la musique est jouer ou non
         private bool verifuno = false; //Vérifie si le joueur a dit Uno lorsqu'il a sa dernière carte en main
-        private Carte Jouee;
+        private bool client;
+
         #endregion
 
         #region Accesseur
@@ -56,13 +57,15 @@ namespace Uno
         #endregion
 
         #region Methodes windows form
-        public FicUno()
+        public FicUno(bool choix)
         {
             InitializeComponent();
             ClientSize = new Size(1280, 720);
             PartieSave = new Partie(this);
             player.URL = "tetris.mp3";
             player.settings.setMode("loop", true);
+
+            client = choix;
 
         }
 
