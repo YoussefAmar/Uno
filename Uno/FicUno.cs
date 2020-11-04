@@ -15,6 +15,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 using WMPLib;
 using System.Diagnostics;
+using Newtonsoft.Json;
 
 namespace Uno
 {
@@ -45,7 +46,9 @@ namespace Uno
         private WindowsMediaPlayer player = new WindowsMediaPlayer(); //lecteur de musique 
         private bool son; //boleen contrôlant si la musique est jouer ou non
         private bool verifuno = false; //Vérifie si le joueur a dit Uno lorsqu'il a sa dernière carte en main
-        private bool client;
+        private bool client; //Boolean client ou serveur selon le choix du joueur
+        private Joueur Joueur; //Classe permettant la communication via socket des joueurs
+        private Data Donnee;     //Classe qui va contenir les données envoyer via socket
 
         #endregion
 
@@ -65,8 +68,9 @@ namespace Uno
             player.URL = "tetris.mp3";
             player.settings.setMode("loop", true);
 
-            client = choix;
-
+            client = choix; 
+            Joueur = new Joueur(choix);
+            
         }
 
         private void FicUno_Load(object sender, EventArgs e)
@@ -172,8 +176,7 @@ namespace Uno
                                 for (int j = 0; j < start; j++) //On compare toutes les cartes a celles jouée pour trouver les même et les joué aussi
                                 {
                                     if(J1[j] != null)
-
-                                    J1[j] = J1[j].HardCompare(Pile);
+                                        J1[j] = J1[j].HardCompare(Pile);
                                 }
                             }
 
@@ -253,8 +256,12 @@ namespace Uno
 
         private void btnQuitter_Click(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Êtes-vous sûre ?", "Quitter", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
-                Close();
+            if (MessageBox.Show("Êtes-vous sûre ?", "Quitter", MessageBoxButtons.YesNo, MessageBoxIcon.Question) ==
+                DialogResult.Yes)
+            {
+                if(Joueur.Deconnecter())
+                    Close();
+            }
         }
 
         private void btnSauver_Click(object sender, EventArgs e) //Sauvegarde du fichier
@@ -478,8 +485,19 @@ namespace Uno
             pbJeu.Invalidate();
         }
 
+        public void EnvoyerJson()
+        {
+            Donnee = new Data(Pile,J1,J2,ExcesJ1,ExcesJ2);
+
+            string json = JsonConvert.SerializeObject(Donnee);
+
+            Joueur.EnvoyerSocket(json);
+
+        }
+
         #endregion
 
        
     }
+
 }

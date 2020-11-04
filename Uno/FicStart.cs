@@ -51,7 +51,7 @@ namespace Uno
 
         private void FicStart_FormClosed(object sender, FormClosedEventArgs e)
         {
-            this.Show();
+            this.Close();
         }
     }
 }
