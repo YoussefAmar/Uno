@@ -13,8 +13,10 @@ using System.IO;
 using System.Media;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
-using WMPLib;
 using System.Diagnostics;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using Newtonsoft.Json;
 
 namespace Uno
@@ -43,12 +45,13 @@ namespace Uno
         //Variable comptant le nombre de carte en main à chaque tours
         private FileStream fSave; //fichier permettant la sauvegarde et le chargement
         private Partie PartieSave; //classe gardant en memoire toutes les variables de la partie 
-        private WindowsMediaPlayer player = new WindowsMediaPlayer(); //lecteur de musique 
-        private bool son; //boleen contrôlant si la musique est jouer ou non
         private bool verifuno = false; //Vérifie si le joueur a dit Uno lorsqu'il a sa dernière carte en main
         private bool client; //Boolean client ou serveur selon le choix du joueur
-        private Joueur Joueur; //Classe permettant la communication via socket des joueurs
-        private Data Donnee;     //Classe qui va contenir les données envoyer via socket
+        private Socket MonClient, MonServeur; //Socket de communication
+        private int DrapeauSocket = 0; //1 pour serveur et 2 pour client
+        private byte[] MonBuffer = new byte[4096]; //Buffer de donnees
+        private string Serveur = "Youssef"; //Nom du serveur
+        public string OutJson; //Donnees envoyer
 
         #endregion
 
@@ -65,20 +68,28 @@ namespace Uno
             InitializeComponent();
             ClientSize = new Size(1280, 720);
             PartieSave = new Partie(this);
-            player.URL = "tetris.mp3";
-            player.settings.setMode("loop", true);
 
-            client = choix; 
-            Joueur = new Joueur(choix);
-            
+            client = choix;
+
+            if (choix)
+            {
+                lbSocket.Text = "Vous êtes le serveur";
+
+                Ecouter();
+
+            }
+            else
+            {
+                lbSocket.Text = "Vous êtes le client";
+
+                Connecter();
+            }
+
         }
 
         private void FicUno_Load(object sender, EventArgs e)
         {
             tourJ1 = true;
-
-            son = true;
-            btnMusic.Text = " | | "; //initialise les élements relié à la musique
 
             nbCarte2 = 7;
 
@@ -259,7 +270,7 @@ namespace Uno
             if (MessageBox.Show("Êtes-vous sûre ?", "Quitter", MessageBoxButtons.YesNo, MessageBoxIcon.Question) ==
                 DialogResult.Yes)
             {
-                if(Joueur.Deconnecter())
+                if(Deconnecter()) //Si il n'y a pas de client connecté, le serveur peut se déco
                     Close();
             }
         }
@@ -301,25 +312,6 @@ namespace Uno
             catch { MessageBox.Show("Aucun fichier sauvegardé", "Veuillez sauver une partie"); }
         }
 
-        private void btnMusic_Click(object sender, EventArgs e)
-        {
-            son = !son; //changement de la variable au click
-
-            if (son)
-            {
-                player.controls.play();//joue si true
-
-                btnMusic.Text = " | | ";
-            }
-            else
-            {
-                player.controls.pause();//pause si false
-
-                btnMusic.Text = " ► ";
-            }
-
-        }
-
         private void bUno_Click(object sender, EventArgs e)
         {
             verifuno = true;
@@ -333,6 +325,8 @@ namespace Uno
         {
 
             tourJoueur = !tourJoueur;
+
+            EnvoyerJson();
 
             return tourJoueur;
         }
@@ -485,19 +479,229 @@ namespace Uno
             pbJeu.Invalidate();
         }
 
-        public void EnvoyerJson()
+
+        #endregion
+
+        #region Socket
+
+        #region debug
+
+        delegate void RenvoiVersInserer(string sPartie);
+        private void InsererItemThread(string sPartie)
         {
-            Donnee = new Data(Pile,J1,J2,ExcesJ1,ExcesJ2);
+            Thread ThreadInsererItem = new Thread(new ParameterizedThreadStart(InsererItem));
+            ThreadInsererItem.Start(sPartie);
+        }
 
-            string json = JsonConvert.SerializeObject(Donnee);
+        private void InsererItem(object oPartie)
+        {
+            if (pbJeu.InvokeRequired)
+            {
+                RenvoiVersInserer f = new RenvoiVersInserer(InsererItem);
+                Invoke(f, new object[] { (string)oPartie });
+            }
+            else
+            {
+                OutJson = (string)oPartie;
 
-            Joueur.EnvoyerSocket(json);
+                RecevoirJson(OutJson);
+            }
 
         }
 
         #endregion
 
-       
-    }
+        public void RecevoirJson(string InJson)
+        {
 
+                string[] Jeu = InJson.Split('#');
+
+                Pile = JsonConvert.DeserializeObject<Carte>(Jeu[0]);
+
+                J1 = JsonConvert.DeserializeObject<Carte[]>(Jeu[1]);
+
+                J2 = JsonConvert.DeserializeObject<Carte[]>(Jeu[2]);
+
+                ExcesJ1 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[3]);
+
+                ExcesJ2 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[4]);
+
+            pbJeu.Invalidate();
+        }
+
+        public void EnvoyerJson()
+        {
+            string jPile = JsonConvert.SerializeObject(Pile);
+            string jJ1 = JsonConvert.SerializeObject(J1);
+            string jJ2 = JsonConvert.SerializeObject(J2);
+            string jExcesJ1 = JsonConvert.SerializeObject(ExcesJ1);
+            string jExcesJ2 = JsonConvert.SerializeObject(ExcesJ2);
+
+            string json = jPile + "#" + jJ1 + "#" + jJ2 + "#" + jExcesJ1 + "#" + jExcesJ2;
+
+            EnvoyerSocket(json);
+
+        }
+
+        public void EnvoyerSocket(string json)
+        {
+            MonClient.Send(Encoding.Unicode.GetBytes(json));
+        }
+
+        private IPAddress AdresseValide(string nPC)
+        {
+
+            IPAddress ipReponse = null;
+
+            if (nPC.Length > 0)
+            {
+
+                IPAddress[] IPServeur = Dns.GetHostEntry(nPC).AddressList;
+
+                for (int i = 0; i < IPServeur.Length; i++)
+                {
+                    Ping pingServeur = new Ping();
+                    PingReply pingReponse = pingServeur.Send(IPServeur[i]);
+
+                    if (pingReponse.Status == IPStatus.Success)
+                    {
+                        if (IPServeur[i].AddressFamily == AddressFamily.InterNetwork)
+                        {
+                            ipReponse = IPServeur[i];
+                            break;
+                        }
+                    }
+
+                }
+
+            }
+
+            return ipReponse;
+
+        }
+
+        public void Connecter()
+        {
+            DrapeauSocket = 2;
+            MonClient = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            MonClient.Blocking = false;
+            IPAddress IPserveur = AdresseValide(Serveur);
+            MonClient.BeginConnect(new IPEndPoint(IPserveur, 8000), new AsyncCallback(SurConnexion), MonClient);
+        }
+
+        public void Ecouter()
+        {
+            DrapeauSocket = 1;
+            MonClient = null;
+            IPAddress IPServeur = AdresseValide(Dns.GetHostName());
+            MonServeur = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            MonServeur.Bind(new IPEndPoint(IPServeur, 8000));
+            MonServeur.Listen(1);
+            MonServeur.BeginAccept(new AsyncCallback(SurDemandeConnexion), MonServeur);
+        }
+
+        public void SurDemandeConnexion(IAsyncResult iar)
+        {
+            if (DrapeauSocket == 1)
+            {
+                Socket tmp = (Socket)iar.AsyncState;
+                MonClient = tmp.EndAccept(iar);
+                InitialiserReception(MonClient);
+            }
+        }
+
+        public void InitialiserReception(Socket soc)
+        {
+            soc.BeginReceive(MonBuffer, 0, MonBuffer.Length, SocketFlags.None, new AsyncCallback(Reception), soc);
+            Array.Clear(MonBuffer, 0, MonBuffer.Length);
+        }
+
+        public void Reception(IAsyncResult iar)
+        {
+            if (DrapeauSocket > 0)
+            {
+                Socket tmp = (Socket)iar.AsyncState;
+                int recu = tmp.EndReceive(iar);
+
+                if (recu > 0)
+                {
+                    InsererItemThread(Encoding.Unicode.GetString(MonBuffer));
+
+                    InitialiserReception(tmp);
+
+                    Array.Clear(MonBuffer, 0, MonBuffer.Length);
+                }
+                else
+                {
+                    tmp.Disconnect(true);
+                    tmp.Close();
+                    MonServeur.BeginAccept(new AsyncCallback(SurDemandeConnexion), MonServeur);
+                    MonClient = null;
+                }
+            }
+        }
+
+        public void DemandeConnexion(IAsyncResult iar)
+        {
+            Socket tmp = (Socket)iar.AsyncState;
+            tmp.EndDisconnect(iar);
+        }
+
+        public void SurConnexion(IAsyncResult iar)
+        {
+            Socket tmp = (Socket)iar.AsyncState;
+
+            if (tmp.Connected)
+            {
+                InitialiserReception(tmp);
+            }
+            else
+            {
+                DialogResult r = MessageBox.Show("Le serveur n'est pas connecté", "Serveur inaccessible",
+                    MessageBoxButtons.OK, MessageBoxIcon.None,
+                    MessageBoxDefaultButton.Button1, (MessageBoxOptions) 0x40000);
+
+                    Deconnecter();
+
+                    Application.Exit();
+
+            }
+        }
+
+        public bool Deconnecter()
+        {
+            if (DrapeauSocket == 2)
+            {
+                try
+                {
+                    MonClient.Shutdown(SocketShutdown.Both);
+                    DrapeauSocket = 0;
+                    MonClient.BeginDisconnect(false, new AsyncCallback(DemandeConnexion), MonClient);
+
+                    return true;
+                }
+                catch
+                {
+                    return true;
+                }
+
+            }
+            else if (MonClient == null)
+            {
+                MonServeur.Close();
+                DrapeauSocket = 0;
+
+                return true;
+            }
+            else
+            {
+                MessageBox.Show("Le serveur ne peut pas se déconnecter tant qu'un client est connecté", "Client connecté", MessageBoxButtons.OK, MessageBoxIcon.None,
+                    MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+
+                return false;
+            }
+        }
+
+        #endregion
+    }
 }

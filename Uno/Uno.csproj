@@ -50,7 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Carte.cs" />
-    <Compile Include="Data.cs" />
     <Compile Include="FicCouleur.cs">
       <SubType>Form</SubType>
     </Compile>

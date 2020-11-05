@@ -44,14 +44,10 @@ namespace Uno
 
             FicUno f = new FicUno(choix);
 
-            f.FormClosed += new FormClosedEventHandler(FicStart_FormClosed);
-
             f.ShowDialog();
-        }
 
-        private void FicStart_FormClosed(object sender, FormClosedEventArgs e)
-        {
             this.Close();
+
         }
     }
 }

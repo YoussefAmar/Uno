@@ -39,9 +39,9 @@
             this.btnQuitter = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSauver = new System.Windows.Forms.Button();
-            this.btnMusic = new System.Windows.Forms.Button();
             this.bUno = new System.Windows.Forms.Button();
             this.lblUno = new System.Windows.Forms.Label();
+            this.lbSocket = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pbJeu)).BeginInit();
             this.SuspendLayout();
             // 
@@ -62,9 +62,9 @@
             this.lJ1.Font = new System.Drawing.Font("Arial Narrow", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lJ1.Location = new System.Drawing.Point(900, 1000);
             this.lJ1.Name = "lJ1";
-            this.lJ1.Size = new System.Drawing.Size(146, 46);
+            this.lJ1.Size = new System.Drawing.Size(134, 46);
             this.lJ1.TabIndex = 3;
-            this.lJ1.Text = "Joueur 1";
+            this.lJ1.Text = "Serveur";
             // 
             // lJ2
             // 
@@ -72,9 +72,9 @@
             this.lJ2.Font = new System.Drawing.Font("Arial Narrow", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lJ2.Location = new System.Drawing.Point(900, 50);
             this.lJ2.Name = "lJ2";
-            this.lJ2.Size = new System.Drawing.Size(146, 46);
+            this.lJ2.Size = new System.Drawing.Size(103, 46);
             this.lJ2.TabIndex = 4;
-            this.lJ2.Text = "Joueur 2";
+            this.lJ2.Text = "Client";
             // 
             // lPile
             // 
@@ -148,17 +148,6 @@
             this.btnSauver.UseVisualStyleBackColor = true;
             this.btnSauver.Click += new System.EventHandler(this.btnSauver_Click);
             // 
-            // btnMusic
-            // 
-            this.btnMusic.Font = new System.Drawing.Font("Arial Narrow", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnMusic.Location = new System.Drawing.Point(1600, 36);
-            this.btnMusic.Name = "btnMusic";
-            this.btnMusic.Size = new System.Drawing.Size(65, 60);
-            this.btnMusic.TabIndex = 12;
-            this.btnMusic.Text = "| |";
-            this.btnMusic.UseVisualStyleBackColor = true;
-            this.btnMusic.Click += new System.EventHandler(this.btnMusic_Click);
-            // 
             // bUno
             // 
             this.bUno.Font = new System.Drawing.Font("Arial Narrow", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -180,6 +169,17 @@
             this.lblUno.TabIndex = 14;
             this.lblUno.Text = "Cliquer avant d\'avoir une carte en main";
             // 
+            // lbSocket
+            // 
+            this.lbSocket.AutoSize = true;
+            this.lbSocket.Font = new System.Drawing.Font("Arial Narrow", 20F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lbSocket.ForeColor = System.Drawing.Color.Black;
+            this.lbSocket.Location = new System.Drawing.Point(1500, 50);
+            this.lbSocket.Name = "lbSocket";
+            this.lbSocket.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.lbSocket.Size = new System.Drawing.Size(0, 46);
+            this.lbSocket.TabIndex = 15;
+            // 
             // FicUno
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
@@ -187,9 +187,9 @@
             this.AutoSize = true;
             this.BackColor = System.Drawing.Color.SteelBlue;
             this.ClientSize = new System.Drawing.Size(1509, 764);
+            this.Controls.Add(this.lbSocket);
             this.Controls.Add(this.lblUno);
             this.Controls.Add(this.bUno);
-            this.Controls.Add(this.btnMusic);
             this.Controls.Add(this.btnSauver);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.btnQuitter);
@@ -226,9 +226,9 @@
         private System.Windows.Forms.Button btnQuitter;
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSauver;
-        private System.Windows.Forms.Button btnMusic;
         private System.Windows.Forms.Button bUno;
         private System.Windows.Forms.Label lblUno;
+        private System.Windows.Forms.Label lbSocket;
     }
 }
 

@@ -22,7 +22,7 @@ namespace Uno
         private int DrapeauSocket = 0; //1 pour serveur et 2 pour client
         private byte[] MonBuffer = new byte[256];
         private string Serveur = "Youssef";
-        public string OutJson { get; private set; }
+        public string OutJson;
 
         //MonClient.Send(Encoding.Unicode.GetBytes(tMessage.Text)); btn envoyer
 

@@ -78,9 +78,9 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "FicStart";
+            this.ShowIcon = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Début du jeu";
-            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.FicStart_FormClosed);
             this.ResumeLayout(false);
             this.PerformLayout();
 
