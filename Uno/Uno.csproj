@@ -68,7 +68,6 @@
     <Compile Include="FicUno.Designer.cs">
       <DependentUpon>FicUno.cs</DependentUpon>
     </Compile>
-    <Compile Include="Joueur.cs" />
     <Compile Include="Partie.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -122,9 +121,6 @@
       <Isolated>False</Isolated>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </COMReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Probleme.txt" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

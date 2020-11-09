@@ -46,7 +46,7 @@ namespace Uno
         private FileStream fSave; //fichier permettant la sauvegarde et le chargement
         private Partie PartieSave; //classe gardant en memoire toutes les variables de la partie 
         private bool verifuno = false; //Vérifie si le joueur a dit Uno lorsqu'il a sa dernière carte en main
-        private bool client; //Boolean client ou serveur selon le choix du joueur
+        private bool typeCon; //Boolean client ou serveur selon le choix du joueur
         private Socket MonClient, MonServeur; //Socket de communication
         private int DrapeauSocket = 0; //1 pour serveur et 2 pour client
         private byte[] MonBuffer = new byte[4096]; //Buffer de donnees
@@ -69,9 +69,9 @@ namespace Uno
             ClientSize = new Size(1280, 720);
             PartieSave = new Partie(this);
 
-            client = choix;
+            typeCon = choix;
 
-            if (choix)
+            if (typeCon)
             {
                 lbSocket.Text = "Vous êtes le serveur";
 
@@ -89,9 +89,12 @@ namespace Uno
 
         private void FicUno_Load(object sender, EventArgs e)
         {
-            tourJ1 = true;
+            Start();
+        }
 
-            nbCarte2 = 7;
+        public Task Start() //Creation du jeu 
+        {
+            tourJ1 = true;
 
             for (int i = 0; i < start; i++)
             {
@@ -116,8 +119,10 @@ namespace Uno
                     J2[i] = new Carte(x[i], y2);
                 }
                 //Initialisation des 7 cartes de départs
-
             }
+
+            return Task.CompletedTask;
+
         }
 
         private void pbPile_Paint(object sender, PaintEventArgs e)
@@ -130,15 +135,15 @@ namespace Uno
             for (int i = 0; i < start; i++)
             {
 
-                if (J1[i] != null && tourJ1)
-                    {
-                        J1[i].Dessine(e);
-                    }
+                if (J1[i] != null && tourJ1 && typeCon)
+                {
+                    J1[i].Dessine(e);
+                }
 
-                if (J2[i] != null && !tourJ1)
-                    {
-                        J2[i].Dessine(e);
-                    }
+                if (J2[i] != null && !tourJ1 && !typeCon)
+                {
+                    J2[i].Dessine(e);
+                }
                 //Dessine les cartes si elle on des attributs associés
 
                 if (J1[i] != null)
@@ -171,7 +176,7 @@ namespace Uno
 
             for (int i = 0; i < 10; i++)
             {
-                if (ys > y1 && ys < (y1 + 130) && tourJ1 == true)
+                if (ys > y1 && ys < (y1 + 130) && tourJ1 == true && typeCon)
                 {
                     if (xs > x[i] && xs < (x[i] + 100) && x[i] != 0)
                     //Recherche de la position de la carte si le joueur 1 la joue
@@ -212,13 +217,15 @@ namespace Uno
 
                                 Effet(Pile.ValeurEffet(Pile));
 
+                                EnvoyerJson();
+
                             }
                         }
 
                     }
                 }
 
-                if (ys > y2 && ys < (y2 + 130) && !tourJ1 == true)
+                if (ys > y2 && ys < (y2 + 130) && !tourJ1 == true && !typeCon)
                 {
                     if (xs > x[i] && xs < (x[i] + 100) && x[i] != 0)
 
@@ -256,6 +263,8 @@ namespace Uno
                                 tourJ1 = ChangementTour(tourJ1);
 
                                 Effet(Pile.ValeurEffet(Pile));
+
+                                EnvoyerJson();
                             }
                         }
 
@@ -326,8 +335,6 @@ namespace Uno
 
             tourJoueur = !tourJoueur;
 
-            EnvoyerJson();
-
             return tourJoueur;
         }
 
@@ -361,6 +368,8 @@ namespace Uno
             Pioche(1);
             //On passe le tour
             tourJ1 = ChangementTour(tourJ1);
+
+            EnvoyerJson();
         }
 
         public void Pioche(int j)
@@ -526,6 +535,8 @@ namespace Uno
 
                 ExcesJ2 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[4]);
 
+                //ChangementTour(tourJ1);
+
             pbJeu.Invalidate();
         }
 
@@ -607,6 +618,8 @@ namespace Uno
                 Socket tmp = (Socket)iar.AsyncState;
                 MonClient = tmp.EndAccept(iar);
                 InitialiserReception(MonClient);
+                Task.WaitAll(Start()); //Attend la fin de la création des cartes
+                EnvoyerJson();
             }
         }
 

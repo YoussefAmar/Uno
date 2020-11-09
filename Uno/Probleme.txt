@@ -1,2 +1,0 @@
-﻿Si le client est connecté en 1er un message s'affiche mais il peut quand même jouer
-Envoyer l'objet reçu de joueur à ficuno => checker toutes les secondes avec un timer??
