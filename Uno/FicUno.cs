@@ -125,8 +125,16 @@ namespace Uno
 
         }
 
+        public void Actif(bool actif) //Active ou disactive les boutons selon le tour du joueur
+        {
+            btnQuitter.Enabled = btnLoad.Enabled = btnPiocher.Enabled = btnSauver.Enabled = btnUno.Enabled = actif;
+            btnQuitter.Visible = btnLoad.Visible = btnPiocher.Visible = btnSauver.Visible = btnUno.Visible = actif;
+        }
+
         private void pbPile_Paint(object sender, PaintEventArgs e)
         {
+            Actif(false);
+
             nbCarte2 = 0;
             nbCarte1 = 0;
 
@@ -138,11 +146,13 @@ namespace Uno
                 if (J1[i] != null && tourJ1 && typeCon)
                 {
                     J1[i].Dessine(e);
+                    Actif(true);
                 }
 
                 if (J2[i] != null && !tourJ1 && !typeCon)
                 {
                     J2[i].Dessine(e);
+                    Actif(true);
                 }
                 //Dessine les cartes si elle on des attributs associés
 
@@ -202,7 +212,7 @@ namespace Uno
 
                             if (Pile.Gagner(J1) == true)
                             {
-                                MessageBox.Show("Victoire du Joueur 1", "Victoire");
+                                MessageBox.Show("Victoire du serveur", "Victoire");
                                 Close();
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 1 et on ferme l'application
@@ -213,7 +223,7 @@ namespace Uno
 
                                 Uno(tourJ1);
 
-                                tourJ1 = ChangementTour(tourJ1);
+                                ChangementTour();
 
                                 Effet(Pile.ValeurEffet(Pile));
 
@@ -250,7 +260,7 @@ namespace Uno
 
                             if (Pile.Gagner(J2) == true)
                             {
-                                MessageBox.Show("Victoire du Joueur 2", "Victoire");
+                                MessageBox.Show("Victoire du client", "Victoire");
                                 Close();
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 2 et on ferme l'application
@@ -260,7 +270,7 @@ namespace Uno
                             {
                                 Uno(tourJ1);
 
-                                tourJ1 = ChangementTour(tourJ1);
+                                ChangementTour();
 
                                 Effet(Pile.ValeurEffet(Pile));
 
@@ -330,12 +340,9 @@ namespace Uno
 
         #region Methodes console
 
-        public bool ChangementTour(bool tourJoueur)
+        public void ChangementTour()
         {
-
-            tourJoueur = !tourJoueur;
-
-            return tourJoueur;
+            tourJ1 = !tourJ1;
         }
 
         private void Uno(bool tourJoueur)
@@ -367,7 +374,7 @@ namespace Uno
         {   //On pioche
             Pioche(1);
             //On passe le tour
-            tourJ1 = ChangementTour(tourJ1);
+            ChangementTour();
 
             EnvoyerJson();
         }
@@ -480,7 +487,7 @@ namespace Uno
             switch(e)
             {
                 case 10 : Pioche(2); break; //Effet de la carte +2
-                case 11 : tourJ1 = ChangementTour(tourJ1); break;//Effet de la carte "passe ton tour"
+                case 11 : ChangementTour(); break;//Effet de la carte "passe ton tour"
                 case 12 : Pioche(4); Pile.ChangeCouleur(Pile); break; //Effet de la carte +4
                 case 13 : Pile.ChangeCouleur(Pile); break; //Effet de la carte changement de couleur
             }
@@ -522,8 +529,7 @@ namespace Uno
 
         public void RecevoirJson(string InJson)
         {
-
-                string[] Jeu = InJson.Split('#');
+            string[] Jeu = InJson.Split('#');
 
                 Pile = JsonConvert.DeserializeObject<Carte>(Jeu[0]);
 
@@ -531,13 +537,35 @@ namespace Uno
 
                 J2 = JsonConvert.DeserializeObject<Carte[]>(Jeu[2]);
 
-                ExcesJ1 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[3]);
+                TourJ1 = Convert.ToBoolean(Jeu[3]);
 
-                ExcesJ2 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[4]);
+                ExcesJ1 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[4]);
 
-                //ChangementTour(tourJ1);
+                ExcesJ2 = JsonConvert.DeserializeObject<List<Carte>>(Jeu[5]);
 
-            pbJeu.Invalidate();
+
+                pbJeu.Invalidate();
+
+                if (Pile.Gagner(J1) == true)
+                {
+                    MessageBox.Show("Victoire du serveur", "Victoire");
+
+                    Deconnecter();
+                    Application.Exit();
+
+                //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du serveur et on ferme l'application
+                }
+
+                if (Pile.Gagner(J2) == true)
+                {
+                    MessageBox.Show("Victoire du client", "Victoire");
+
+                    Deconnecter();
+                    Application.Exit();
+
+                //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du client et on ferme l'application
+                }
+
         }
 
         public void EnvoyerJson()
@@ -548,7 +576,7 @@ namespace Uno
             string jExcesJ1 = JsonConvert.SerializeObject(ExcesJ1);
             string jExcesJ2 = JsonConvert.SerializeObject(ExcesJ2);
 
-            string json = jPile + "#" + jJ1 + "#" + jJ2 + "#" + jExcesJ1 + "#" + jExcesJ2;
+            string json = jPile + "#" + jJ1 + "#" + jJ2 + "#" + TourJ1 + "#" + jExcesJ1 + "#" + jExcesJ2;
 
             EnvoyerSocket(json);
 

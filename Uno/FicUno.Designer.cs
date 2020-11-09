@@ -39,7 +39,7 @@
             this.btnQuitter = new System.Windows.Forms.Button();
             this.btnLoad = new System.Windows.Forms.Button();
             this.btnSauver = new System.Windows.Forms.Button();
-            this.bUno = new System.Windows.Forms.Button();
+            this.btnUno = new System.Windows.Forms.Button();
             this.lblUno = new System.Windows.Forms.Label();
             this.lbSocket = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.pbJeu)).BeginInit();
@@ -148,16 +148,16 @@
             this.btnSauver.UseVisualStyleBackColor = true;
             this.btnSauver.Click += new System.EventHandler(this.btnSauver_Click);
             // 
-            // bUno
+            // btnUno
             // 
-            this.bUno.Font = new System.Drawing.Font("Arial Narrow", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.bUno.Location = new System.Drawing.Point(343, 476);
-            this.bUno.Name = "bUno";
-            this.bUno.Size = new System.Drawing.Size(130, 60);
-            this.bUno.TabIndex = 13;
-            this.bUno.Text = "Uno";
-            this.bUno.UseVisualStyleBackColor = true;
-            this.bUno.Click += new System.EventHandler(this.bUno_Click);
+            this.btnUno.Font = new System.Drawing.Font("Arial Narrow", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnUno.Location = new System.Drawing.Point(343, 476);
+            this.btnUno.Name = "btnUno";
+            this.btnUno.Size = new System.Drawing.Size(130, 60);
+            this.btnUno.TabIndex = 13;
+            this.btnUno.Text = "Uno";
+            this.btnUno.UseVisualStyleBackColor = true;
+            this.btnUno.Click += new System.EventHandler(this.bUno_Click);
             // 
             // lblUno
             // 
@@ -189,7 +189,7 @@
             this.ClientSize = new System.Drawing.Size(1509, 764);
             this.Controls.Add(this.lbSocket);
             this.Controls.Add(this.lblUno);
-            this.Controls.Add(this.bUno);
+            this.Controls.Add(this.btnUno);
             this.Controls.Add(this.btnSauver);
             this.Controls.Add(this.btnLoad);
             this.Controls.Add(this.btnQuitter);
@@ -226,7 +226,7 @@
         private System.Windows.Forms.Button btnQuitter;
         private System.Windows.Forms.Button btnLoad;
         private System.Windows.Forms.Button btnSauver;
-        private System.Windows.Forms.Button bUno;
+        private System.Windows.Forms.Button btnUno;
         private System.Windows.Forms.Label lblUno;
         private System.Windows.Forms.Label lbSocket;
     }
