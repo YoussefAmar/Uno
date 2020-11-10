@@ -151,7 +151,7 @@
             // btnUno
             // 
             this.btnUno.Font = new System.Drawing.Font("Arial Narrow", 12F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnUno.Location = new System.Drawing.Point(343, 476);
+            this.btnUno.Location = new System.Drawing.Point(390, 476);
             this.btnUno.Name = "btnUno";
             this.btnUno.Size = new System.Drawing.Size(130, 60);
             this.btnUno.TabIndex = 13;
@@ -163,7 +163,7 @@
             // 
             this.lblUno.AutoSize = true;
             this.lblUno.Font = new System.Drawing.Font("Arial Narrow", 12F);
-            this.lblUno.Location = new System.Drawing.Point(250, 539);
+            this.lblUno.Location = new System.Drawing.Point(290, 539);
             this.lblUno.Name = "lblUno";
             this.lblUno.Size = new System.Drawing.Size(350, 29);
             this.lblUno.TabIndex = 14;

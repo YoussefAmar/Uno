@@ -40,7 +40,7 @@ namespace Uno
         //Boolen permetant au joueur 1 de cliquer lors de son tours
         private int start = 10;
         //Nombre de carte en main maximum durant la partie (10 maximum)
-        private int nbCarte1;
+        private int nbCarte1 = -1;
         private int nbCarte2;
         //Variable comptant le nombre de carte en main à chaque tours
         private FileStream fSave; //fichier permettant la sauvegarde et le chargement
@@ -49,9 +49,9 @@ namespace Uno
         private bool typeCon; //Boolean client ou serveur selon le choix du joueur
         private Socket MonClient, MonServeur; //Socket de communication
         private int DrapeauSocket = 0; //1 pour serveur et 2 pour client
-        private byte[] MonBuffer = new byte[4096]; //Buffer de donnees
+        private byte[] MonBuffer = new byte[4160]; //Buffer de donnees
         private string Serveur = "Youssef"; //Nom du serveur
-        public string OutJson; //Donnees envoyer
+        private string OutJson; //Donnees envoyer
 
         #endregion
 
@@ -96,6 +96,9 @@ namespace Uno
         {
             tourJ1 = true;
 
+            if (!typeCon)
+                Pile = null; //Place la pile à null si client
+
             for (int i = 0; i < start; i++)
             {
 
@@ -121,24 +124,26 @@ namespace Uno
                 //Initialisation des 7 cartes de départs
             }
 
+            pbJeu.Invalidate();
+
             return Task.CompletedTask;
 
         }
 
         public void Actif(bool actif) //Active ou disactive les boutons selon le tour du joueur
         {
-            btnQuitter.Enabled = btnLoad.Enabled = btnPiocher.Enabled = btnSauver.Enabled = btnUno.Enabled = actif;
-            btnQuitter.Visible = btnLoad.Visible = btnPiocher.Visible = btnSauver.Visible = btnUno.Visible = actif;
+           btnLoad.Enabled = btnPiocher.Enabled = btnSauver.Enabled = btnUno.Enabled = actif;
+           lblUno.Visible = btnLoad.Visible = btnPiocher.Visible = btnSauver.Visible = btnUno.Visible = actif;
         }
 
         private void pbPile_Paint(object sender, PaintEventArgs e)
         {
             Actif(false);
 
+            Pile?.Dessine(e);
+
             nbCarte2 = 0;
             nbCarte1 = 0;
-
-            Pile.Dessine(e);
 
             for (int i = 0; i < start; i++)
             {
@@ -213,7 +218,8 @@ namespace Uno
                             if (Pile.Gagner(J1) == true)
                             {
                                 MessageBox.Show("Victoire du serveur", "Victoire");
-                                Close();
+
+                                Environment.Exit(0);
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 1 et on ferme l'application
                             }
@@ -261,7 +267,10 @@ namespace Uno
                             if (Pile.Gagner(J2) == true)
                             {
                                 MessageBox.Show("Victoire du client", "Victoire");
-                                Close();
+
+                                Deconnecter();
+
+                                Environment.Exit(0);
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 2 et on ferme l'application
                             }
@@ -495,7 +504,6 @@ namespace Uno
             pbJeu.Invalidate();
         }
 
-
         #endregion
 
         #region Socket
@@ -548,24 +556,27 @@ namespace Uno
 
                 if (Pile.Gagner(J1) == true)
                 {
-                    MessageBox.Show("Victoire du serveur", "Victoire");
+                    DialogResult r = MessageBox.Show("Victoire du serveur", "Victoire",
+                    MessageBoxButtons.OK, MessageBoxIcon.None,
+                    MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
-                    Deconnecter();
-                    Application.Exit();
+                    Environment.Exit(0);
 
                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du serveur et on ferme l'application
                 }
 
                 if (Pile.Gagner(J2) == true)
                 {
-                    MessageBox.Show("Victoire du client", "Victoire");
+                    DialogResult r = MessageBox.Show("Victoire du client", "Victoire",
+                    MessageBoxButtons.OK, MessageBoxIcon.None,
+                    MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
-                    Deconnecter();
-                    Application.Exit();
+                     Deconnecter();
 
-                //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du client et on ferme l'application
+                    Environment.Exit(0);
+
+                    //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du client et on ferme l'application
                 }
-
         }
 
         public void EnvoyerJson()
@@ -584,7 +595,22 @@ namespace Uno
 
         public void EnvoyerSocket(string json)
         {
-            MonClient.Send(Encoding.Unicode.GetBytes(json));
+            if (MonClient == null)
+            {
+                DialogResult r = MessageBox.Show("Client ou serveur inacessible", "Erreur de connexion",
+                    MessageBoxButtons.OK, MessageBoxIcon.None,
+                    MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+
+                Deconnecter();
+
+                Environment.Exit(0);
+            }
+
+            else
+            {
+                MonClient.Send(Encoding.Unicode.GetBytes(json));
+            }
+
         }
 
         private IPAddress AdresseValide(string nPC)
@@ -634,7 +660,21 @@ namespace Uno
             MonClient = null;
             IPAddress IPServeur = AdresseValide(Dns.GetHostName());
             MonServeur = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            MonServeur.Bind(new IPEndPoint(IPServeur, 8000));
+            try
+            {
+                MonServeur.Bind(new IPEndPoint(IPServeur, 8000));
+            }
+            catch (SocketException)
+            {
+                DialogResult r = MessageBox.Show("Serveur déjà connecté", "Un seul serveur",
+                    MessageBoxButtons.OK, MessageBoxIcon.None,
+                    MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
+
+                Deconnecter();
+
+                Environment.Exit(0);
+            }
+
             MonServeur.Listen(1);
             MonServeur.BeginAccept(new AsyncCallback(SurDemandeConnexion), MonServeur);
         }
@@ -659,27 +699,37 @@ namespace Uno
 
         public void Reception(IAsyncResult iar)
         {
-            if (DrapeauSocket > 0)
+            try
             {
-                Socket tmp = (Socket)iar.AsyncState;
-                int recu = tmp.EndReceive(iar);
-
-                if (recu > 0)
+                if (DrapeauSocket > 0)
                 {
-                    InsererItemThread(Encoding.Unicode.GetString(MonBuffer));
+                    Socket tmp = (Socket) iar.AsyncState;
+                    int recu = tmp.EndReceive(iar);
 
-                    InitialiserReception(tmp);
+                    if (recu > 0)
+                    {
+                        InsererItemThread(Encoding.Unicode.GetString(MonBuffer));
 
-                    Array.Clear(MonBuffer, 0, MonBuffer.Length);
-                }
-                else
-                {
-                    tmp.Disconnect(true);
-                    tmp.Close();
-                    MonServeur.BeginAccept(new AsyncCallback(SurDemandeConnexion), MonServeur);
-                    MonClient = null;
+                        InitialiserReception(tmp);
+
+                        Array.Clear(MonBuffer, 0, MonBuffer.Length);
+                    }
+                    else
+                    {
+                        tmp.Disconnect(true);
+                        tmp.Close();
+                        MonServeur.BeginAccept(new AsyncCallback(SurDemandeConnexion), MonServeur);
+                        MonClient = null;
+                    }
                 }
             }
+            catch
+            {
+                Deconnecter();
+
+                Environment.Exit(0);
+            }
+
         }
 
         public void DemandeConnexion(IAsyncResult iar)
@@ -704,7 +754,7 @@ namespace Uno
 
                     Deconnecter();
 
-                    Application.Exit();
+                    Environment.Exit(0);
 
             }
         }
