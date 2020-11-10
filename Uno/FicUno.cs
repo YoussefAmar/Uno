@@ -219,7 +219,9 @@ namespace Uno
                             {
                                 MessageBox.Show("Victoire du serveur", "Victoire");
 
-                                Environment.Exit(0);
+                                EnvoyerJson();
+
+                                Close();
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 1 et on ferme l'application
                             }
@@ -268,9 +270,11 @@ namespace Uno
                             {
                                 MessageBox.Show("Victoire du client", "Victoire");
 
+                                EnvoyerJson();
+
                                 Deconnecter();
 
-                                Environment.Exit(0);
+                                Close();
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 2 et on ferme l'application
                             }
@@ -560,7 +564,7 @@ namespace Uno
                     MessageBoxButtons.OK, MessageBoxIcon.None,
                     MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
-                    Environment.Exit(0);
+                    Close();
 
                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du serveur et on ferme l'application
                 }
@@ -573,9 +577,9 @@ namespace Uno
 
                      Deconnecter();
 
-                    Environment.Exit(0);
+                    Close();
 
-                    //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du client et on ferme l'application
+                //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du client et on ferme l'application
                 }
         }
 
@@ -664,9 +668,9 @@ namespace Uno
             {
                 MonServeur.Bind(new IPEndPoint(IPServeur, 8000));
             }
-            catch (SocketException)
+            catch (SocketException) //catch la connexion multiple de serveur au port 8000
             {
-                DialogResult r = MessageBox.Show("Serveur déjà connecté", "Un seul serveur",
+                DialogResult r = MessageBox.Show("Un seul serveur peut être connecté", "Serveur déjà connecté",
                     MessageBoxButtons.OK, MessageBoxIcon.None,
                     MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
@@ -684,7 +688,15 @@ namespace Uno
             if (DrapeauSocket == 1)
             {
                 Socket tmp = (Socket)iar.AsyncState;
-                MonClient = tmp.EndAccept(iar);
+
+                try
+                {
+                    MonClient = tmp.EndAccept(iar);
+                }
+                catch(ObjectDisposedException)
+                {
+                    Environment.Exit(0);
+                }
                 InitialiserReception(MonClient);
                 Task.WaitAll(Start()); //Attend la fin de la création des cartes
                 EnvoyerJson();
