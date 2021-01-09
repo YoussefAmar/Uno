@@ -221,6 +221,8 @@ namespace Uno
 
                                 EnvoyerJson();
 
+                                Deconnecter();
+
                                 Close();
 
                                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du joueur 1 et on ferme l'application
@@ -564,6 +566,8 @@ namespace Uno
                     MessageBoxButtons.OK, MessageBoxIcon.None,
                     MessageBoxDefaultButton.Button1, (MessageBoxOptions)0x40000);
 
+                    Deconnecter();
+
                     Close();
 
                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du serveur et on ferme l'application
@@ -577,7 +581,7 @@ namespace Uno
 
                      Deconnecter();
 
-                    Close();
+                     Close();
 
                 //Si toutes les cartes sont nuls on ouvre une messagebox pour annoncer la victoire du client et on ferme l'application
                 }
